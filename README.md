@@ -11,6 +11,8 @@
 * 开发说明（5）：WebSocket 接口
 * 开发说明（6）：Pytest 单测
 
+![fastapi-common-tmpl.png](docs%2Ffastapi-common-tmpl.png)
+
 #### 1. 技术栈
 
 * Python：3.11.7+；
