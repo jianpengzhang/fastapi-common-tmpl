@@ -1,0 +1,13 @@
+**/__pycache__
+.git
+.gitlab-ci.yml
+.gitignore
+.coveragerc
+README.md
+deploy
+celerybeat-schedule.db.db
+.coverage
+.dockerignore
+coverage.xml
+report.xm
+report.xml

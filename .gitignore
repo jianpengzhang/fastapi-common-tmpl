@@ -1,0 +1,9 @@
+.idea/
+.cache/
+*.py[cd]
+.coverage
+.pytest_cache
+.env
+celerybeat-schedule.db.db
+report.xml
+coverage.xml

@@ -1,0 +1,6 @@
+[report]
+show_missing = True
+omit =
+    */migrations/*
+    *__init__*
+    *test*

@@ -1,0 +1,100 @@
+version: "2.3"
+services:
+  postgres:
+    image: postgres:14.13
+    command: postgres -c 'max_connections=1024'
+    container_name: example-postgres
+    restart: always
+    volumes:
+      - example-data-postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - example_net
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7.0.15
+    container_name: example-redis
+    restart: always
+    volumes:
+      - example-data-redis:/data
+    networks:
+      - example_net
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  migrations:
+    image: $BACKEND_IMAGE
+    command: python init_data.py
+    container_name: example-migrations
+    env_file:
+      - .env
+    networks:
+      - example_net
+    depends_on:
+      - postgres
+      - redis
+  backend:
+    image: $BACKEND_IMAGE
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9000  --workers 4
+    env_file:
+      - .env
+    restart: always
+    container_name: example-backend
+    networks:
+      - example_net
+    ports:
+      - 9000:9000
+    depends_on:
+      - migrations
+  celery:
+    image: $BACKEND_IMAGE
+    command: celery -A app.core.celery worker -l INFO -c 1000 -P eventlet
+    container_name: example-celery
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - example_net
+    depends_on:
+      - migrations
+  scheduler:
+    image: $BACKEND_IMAGE
+    command: celery -A app.core.celery beat -l info --schedule celerybeat-schedule.db
+    container_name: example-scheduler
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - example_net
+    depends_on:
+      - migrations
+networks:
+  example_net:
+    name: example_net
+    external: false
+volumes:
+  example-data-postgres:
+    name: example-data-postgres
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/example/postgres
+  example-data-redis:
+    name: example-data-redis
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/example/redis
